@@ -1,0 +1,11 @@
+Kanji Format for File Writing:
+
+; - Kanji Object Separator
+/ - Kanji's fields Separator
+* - Meanings/Readings Separator (or not specified meanings/readings)
+
+Version 1:
+logogram/level/stroke count/frequency/onyomi reading 1*onyomi reading 2*...*onyomi reading n/kunyomi reading 1*kunyomi reading 2*...*kunyomi reading m/meaning 1*meaning 2*...*meaning k;
+
+Example:
+桜/1/10/1248/おう*よう/さくら*ざくら/Cerezo*Cereza;
