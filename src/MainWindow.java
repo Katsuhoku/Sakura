@@ -16,6 +16,7 @@ public class MainWindow extends JFrame{
   private boolean addKanjiEnabled = false;
   private boolean searchKanjiEnabled = false;
   private boolean displayKanjiEnabled = false;
+  private boolean editKanjiEnabled = false;
 
   private boolean changes = false;
   private static final String extension = ".skc";
@@ -31,7 +32,7 @@ public class MainWindow extends JFrame{
   //Paneles
   private JPanel actionsPanel;
   private JPanel mainPanel;
-  private JPanel lastPanel;
+  private PanelStack lastPanels;
 
   private AddKanjiPanel addKanjiPanel;
   private SearchKanjiPanel searchKanjiPanel;
@@ -40,6 +41,7 @@ public class MainWindow extends JFrame{
   //Botones
   private JButton addButton;
   private JButton searchButton;
+  private JButton editKanjiButton;
   private JButton returnButton;
 
   //Menús
@@ -164,6 +166,7 @@ public class MainWindow extends JFrame{
 
     newFileMenu = new JMenuItem("Nueva Lista");
     newFileMenu.setFont(menuFont);
+    newFileMenu.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
     newFileMenu.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent evt) {
         newFileMenuMouseClicked();
@@ -173,6 +176,7 @@ public class MainWindow extends JFrame{
 
     openFileMenu = new JMenuItem("Abrir Lista");
     openFileMenu.setFont(menuFont);
+    openFileMenu.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
     openFileMenu.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent evt) {
         openFileMenuMouseClicked();
@@ -183,6 +187,7 @@ public class MainWindow extends JFrame{
 
     saveFileMenu = new JMenuItem("Guardar Lista");
     saveFileMenu.setFont(menuFont);
+    saveFileMenu.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
     saveFileMenu.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent evt) {
         saveFileMenuMouseClicked();
@@ -192,6 +197,7 @@ public class MainWindow extends JFrame{
 
     saveAsFileMenu = new JMenuItem("Guardar como...");
     saveAsFileMenu.setFont(menuFont);
+    saveAsFileMenu.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK + InputEvent.ALT_MASK));
     saveAsFileMenu.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent evt) {
         saveAsFileMenuMouseClicked();
@@ -243,6 +249,8 @@ public class MainWindow extends JFrame{
 
     contenedorPrincipal.add(actionsPanel, BorderLayout.PAGE_START);
     contenedorPrincipal.add(mainPanel, BorderLayout.CENTER);
+
+    lastPanels = new PanelStack();
   }
 
   //
@@ -314,10 +322,27 @@ public class MainWindow extends JFrame{
     Kanji newKanji = addKanjiPanel.genKanji();
     if (newKanji != null){
       try {
-        if (!kanjiTable.addKanji(newKanji)) {
-          addKanjiPanel.displayError("Este Kanji ya fue agregado anteriormente");
+        if (addKanjiEnabled) {
+          if (!kanjiTable.addKanji(newKanji)) {
+            addKanjiPanel.displayError("Este Kanji ya fue agregado anteriormente");
+          }
+          else {
+            cancelButtonMouseClicked();
+            changes(true);
+          }
         }
-        else {
+        else if (editKanjiEnabled) {
+          Kanji displayedKanji = displayKanjiPanel.getKanji();
+          displayedKanji.setOnYomi(newKanji.getOnYomi());
+          displayedKanji.setKunYomi(newKanji.getKunYomi());
+          displayedKanji.setMeaning(newKanji.getMeaning());
+
+          try {
+            lastPanels.pop();
+            displayKanjiPanel = new KanjiPanel(displayedKanji);
+            lastPanels.push(displayKanjiPanel);
+          } catch (StackEmptyException ske) {}
+
           cancelButtonMouseClicked();
           changes(true);
         }
@@ -331,11 +356,26 @@ public class MainWindow extends JFrame{
 
   private void cancelButtonMouseClicked() {
     mainPanel.remove(addKanjiPanel);
-    mainPanel.add(logo);
-    mainPanel.updateUI();
-    addKanjiPanel = null;
 
-    addKanjiEnabled = false;
+    if (addKanjiEnabled) {
+      mainPanel.add(logo);
+      addKanjiEnabled = false;
+    }
+    else if (editKanjiEnabled){
+      try {
+          mainPanel.add(lastPanels.pop());
+      } catch(StackEmptyException e) {}
+
+      actionsPanel.removeAll();
+      actionsPanel.add(returnButton);
+      actionsPanel.add(editKanjiButton);
+
+      editKanjiEnabled = false;
+    }
+
+    mainPanel.updateUI();
+    actionsPanel.updateUI();
+    addKanjiPanel = null;
   }
 
   private void searchByKeyButtonMouseClicked() {
@@ -475,10 +515,19 @@ public class MainWindow extends JFrame{
 
       try {
         mainPanel.remove(searchKanjiPanel);
-        lastPanel = searchKanjiPanel;
       } catch (Exception e) {}
+      lastPanels.push(searchKanjiPanel);
       mainPanel.add(displayKanjiPanel);
       mainPanel.updateUI();
+
+      editKanjiButton = new JButton("Editar");
+      editKanjiButton.setFont(getTextFont());
+      editKanjiButton.setBackground(new Color(255, 255, 255));
+      editKanjiButton.addMouseListener(new MouseAdapter() {
+        public void mouseClicked(MouseEvent evt) {
+          editKanjiButtonMouseClicked();
+        }
+      });
 
       returnButton = new JButton("Regresar");
       returnButton.setFont(getTextFont());
@@ -492,6 +541,7 @@ public class MainWindow extends JFrame{
       actionsPanel.remove(addButton);
       actionsPanel.remove(searchButton);
       actionsPanel.add(returnButton);
+      actionsPanel.add(editKanjiButton);
       actionsPanel.updateUI();
     } catch (InvalidLevelException ile) {
       searchKanjiPanel.displayError(ile.toString());
@@ -500,12 +550,45 @@ public class MainWindow extends JFrame{
     }
   }
 
+  private void editKanjiButtonMouseClicked() {
+    Kanji displayedKanji = displayKanjiPanel.getKanji();
+
+    try {
+      mainPanel.remove(displayKanjiPanel);
+    } catch (Exception e) {}
+    lastPanels.push(displayKanjiPanel);
+
+    addKanjiPanel = new AddKanjiPanel(displayedKanji);
+    addKanjiPanel.getAcceptButton().addMouseListener(new MouseAdapter() {
+      public void mouseClicked(MouseEvent evt) {
+        acceptButtonMouseClicked();
+      }
+    });
+    addKanjiPanel.getCancelButton().addMouseListener(new MouseAdapter() {
+      public void mouseClicked(MouseEvent evt) {
+        cancelButtonMouseClicked();
+      }
+    });
+
+    actionsPanel.remove(returnButton);
+    actionsPanel.remove(editKanjiButton);
+    actionsPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+
+    mainPanel.add(addKanjiPanel);
+    mainPanel.updateUI();
+    editKanjiEnabled = true;
+  }
+
   private void returnButtonMouseClicked() {
     mainPanel.remove(displayKanjiPanel);
-    mainPanel.add(lastPanel);
+    try {
+      mainPanel.add(lastPanels.pop());
+    }
+    catch (StackEmptyException ske) {}
     mainPanel.updateUI();
 
     actionsPanel.remove(returnButton);
+    actionsPanel.remove(editKanjiButton);
     actionsPanel.add(addButton);
     actionsPanel.add(searchButton);
     actionsPanel.updateUI();
@@ -653,7 +736,7 @@ public class MainWindow extends JFrame{
           }
           pathFile = auxPathFile;
           changes(false);
-          
+
           /*auxTable = (KanjiTable) FileHandler.readFile();
           auxTable.getSum(); //Testing object readed
           FileHandler.closeFile('r');

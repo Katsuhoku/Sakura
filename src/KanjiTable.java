@@ -5,8 +5,8 @@ public class KanjiTable implements Serializable {
   //Atributos
   private AVLTree[][] table;
   private int sum;
-  private static final int minStrokes[] = {1, 2, 3, 2, 1};
-  private static final int maxStrokes[] = {24, 20, 20, 18, 14};
+  private static final int minStrokes[] = {1, 1, 1, 1, 1};
+  private static final int maxStrokes[] = {24, 24, 24, 22, 20};
 
   //Métodos
   //Constructor

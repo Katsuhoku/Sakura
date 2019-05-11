@@ -7,7 +7,7 @@ import javax.swing.plaf.basic.BasicScrollBarUI;
 
 public class KanjiPanel extends JPanel {
   //Atributos
-  Kanji displayKanji;
+  private Kanji displayKanji;
 
   //Métodos
   //Constructor
@@ -112,5 +112,9 @@ public class KanjiPanel extends JPanel {
     extraInfoPanel.add(meaningsLabel);
     extraInfoPanel.add(Box.createRigidArea(new Dimension(0, 30)));
     add(extraInfoPanel);
+  }
+
+  public Kanji getKanji() {
+    return displayKanji;
   }
 }

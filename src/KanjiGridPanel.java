@@ -5,7 +5,7 @@ import java.awt.event.*;
 
 public class KanjiGridPanel extends JPanel {
   //Atributos
-  int rows;
+  private int rows;
 
   //Components
 

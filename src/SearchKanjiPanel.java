@@ -192,6 +192,10 @@ public class SearchKanjiPanel extends JPanel {
       }
     });
     kanjiDisplay.getVerticalScrollBar().setPreferredSize(new Dimension(10, 0));
+    if (kanjiList.size() <= 25) {
+      kanjiDisplay.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+      kanjiDisplay.setWheelScrollingEnabled(false);
+    }
 
     add(kanjiDisplay, BorderLayout.CENTER);
     updateUI();

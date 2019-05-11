@@ -41,6 +41,12 @@ public class AddKanjiPanel extends JPanel {
     add(Box.createRigidArea(new Dimension(0, 40)));
   }
 
+  public AddKanjiPanel(Kanji editKanji) {
+    this();
+    editDetailsPanel(editKanji);
+    editExtraInfoPanel(editKanji);
+  }
+
   private void initDetailsPanel() {
     kanjiField = new JTextField();
     kanjiField.setFont(MainWindow.getKanjiFont());
@@ -113,6 +119,29 @@ public class AddKanjiPanel extends JPanel {
     add(detailsPanel);
   }
 
+  private void editDetailsPanel(Kanji editKanji) {
+    kanjiField.setText(editKanji.getLogogram());
+    kanjiField.setEditable(false);
+    // Deshabilita el selector de nivel
+    levelSelector.setSelectedIndex(editKanji.getLevel() - 1);
+    ((JTextField) levelSelector.getEditor().getEditorComponent()).setEditable(false);
+    for (Component component : levelSelector.getComponents()) {
+      if (component instanceof AbstractButton) {
+        component.setEnabled(false);
+        for (MouseListener listener : component.getListeners(MouseListener.class)) {
+          component.removeMouseListener(listener);
+        }
+      }
+    }
+    for (MouseListener listener : levelSelector.getListeners(MouseListener.class)) {
+      levelSelector.removeMouseListener(listener);
+    }
+    strokeCountField.setText(String.format("%d", editKanji.getStrokeCount()));
+    strokeCountField.setEditable(false);
+    frequencyField.setText(String.format("%d", editKanji.getFrequency()));
+    frequencyField.setEditable(false);
+  }
+
   private void initErrorPanel() {
     errorLabel = new JLabel("\t");
     errorLabel.setFont(MainWindow.getErrorFont());
@@ -165,6 +194,29 @@ public class AddKanjiPanel extends JPanel {
     extraInfoPanel.add(meaningsField);
     auxPanel.add(extraInfoPanel, BorderLayout.CENTER);
     add(auxPanel);
+  }
+
+  private void editExtraInfoPanel(Kanji editKanji) {
+    StringBuffer onyomi = new StringBuffer();
+    for (String lecture : editKanji.getOnYomi()) {
+      onyomi.append(lecture + "・");
+    }
+    onyomi.delete(onyomi.length() -1, onyomi.length());
+    onyomiField.setText(onyomi.toString());
+
+    StringBuffer kunyomi = new StringBuffer();
+    for (String lecture : editKanji.getKunYomi()) {
+      kunyomi.append(lecture + "・");
+    }
+    kunyomi.delete(kunyomi.length() -1, kunyomi.length());
+    kunyomiField.setText(kunyomi.toString());
+
+    StringBuffer meanings = new StringBuffer();
+    for (String lecture : editKanji.getMeaning()) {
+      meanings.append(lecture + ",");
+    }
+    meanings.delete(meanings.length() -1, meanings.length());
+    meaningsField.setText(meanings.toString());
   }
 
   private void initButtonPanel() {

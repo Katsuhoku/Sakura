@@ -3,7 +3,7 @@ import java.awt.*;
 
 public class KanjiButton extends JPanel {
   //Atributos
-  String kanjiKey;
+  private String kanjiKey;
 
   //Métodos
   //Constructor
