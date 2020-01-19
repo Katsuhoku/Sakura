@@ -1,7 +1,9 @@
 import java.util.ArrayList;
 import java.io.Serializable;
 
-//Arbol AVL (para almacenamiento de Kanji)
+/*
+ * Clase de Arbol ALV
+ */
 public class AVLTree implements Serializable {
   //Nodo del Arbol Binario
   private class Node implements Serializable {
